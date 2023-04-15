@@ -114,3 +114,22 @@ func SkipTLSValidation() *bool {
 func CAFile() string {
 	return caCertFile
 }
+
+// CentralURL returns the URL for the central instance based on the endpoint flags.
+func CentralURL() (*url.URL, error) {
+	endpoint, plaintext, err := EndpointAndPlaintextSetting()
+	if err != nil {
+		return nil, err
+	}
+
+	scheme := "https"
+	if plaintext {
+		scheme = "http"
+	}
+	rawURL := scheme + "://" + endpoint
+	baseURL, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, errors.Wrapf(err, "parsing central URL %s", rawURL)
+	}
+	return baseURL, nil
+}
