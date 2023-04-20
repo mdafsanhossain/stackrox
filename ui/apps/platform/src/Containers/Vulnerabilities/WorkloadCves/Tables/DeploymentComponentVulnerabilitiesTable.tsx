@@ -29,6 +29,7 @@ export const deploymentComponentVulnerabilitiesFragment = gql`
             cvss
             scoreVersion
             fixedByVersion
+            discoveredAtImage
         }
     }
 `;

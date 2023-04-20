@@ -21,8 +21,11 @@ import { gql, useQuery } from '@apollo/client';
 import useURLPagination from 'hooks/useURLPagination';
 import useURLStringUnion from 'hooks/useURLStringUnion';
 import useURLSearch from 'hooks/useURLSearch';
+import useURLSort from 'hooks/useURLSort';
+import { Pagination as PaginationParam } from 'services/types';
 import { getHasSearchApplied, getRequestQueryStringForSearchFilter } from 'utils/searchUtils';
 import { getAxiosErrorMessage } from 'utils/responseErrorUtils';
+
 import { DynamicTableLabel } from '../components/DynamicIcon';
 import WorkloadTableToolbar from '../components/WorkloadTableToolbar';
 import { cveStatusTabValues } from '../types';
@@ -35,6 +38,11 @@ import {
     ImageVulnerabilityCounter,
     imageVulnerabilityCounterFragment,
 } from '../SummaryCards/CvesByStatusSummaryCard';
+import { imageMetadataContextFragment } from '../Tables/componentVulnerabilities.utils';
+import DeploymentVulnerabilitiesTable, {
+    deploymentWithVulnerabilitiesFragment,
+    DeploymentWithVulnerabilities,
+} from '../Tables/DeploymentVulnerabilitiesTable';
 
 const summaryQuery = gql`
     ${imageVulnerabilityCounterFragment}
@@ -52,6 +60,18 @@ const summaryQuery = gql`
     }
 `;
 
+const vulnerabilityQuery = gql`
+    ${imageMetadataContextFragment}
+    ${deploymentWithVulnerabilitiesFragment}
+    query getCvesForDeployment($id: ID!, $query: String!, $pagination: Pagination!) {
+        deployment(id: $id) {
+            ...DeploymentWithVulnerabilities
+        }
+    }
+`;
+
+const defaultSortFields = ['CVE'];
+
 export type DeploymentPageVulnerabilitiesProps = {
     deploymentId: string;
 };
@@ -62,6 +82,14 @@ function DeploymentPageVulnerabilities({ deploymentId }: DeploymentPageVulnerabi
     const [activeTabKey, setActiveTabKey] = useURLStringUnion('cveStatus', cveStatusTabValues);
 
     const { page, setPage, perPage, setPerPage } = useURLPagination(20);
+    const { sortOption, getSortParams } = useURLSort({
+        sortFields: defaultSortFields,
+        defaultSortOption: {
+            field: 'CVE',
+            direction: 'desc',
+        },
+        onSort: () => setPage(1),
+    });
 
     const totalVulnerabilityCount = 0;
     const isFiltered = getHasSearchApplied(querySearchFilter);
@@ -85,6 +113,31 @@ function DeploymentPageVulnerabilities({ deploymentId }: DeploymentPageVulnerabi
     });
 
     const summaryData = summaryRequest.data ?? summaryRequest.previousData;
+
+    const pagination = {
+        offset: (page - 1) * perPage,
+        limit: perPage,
+        sortOption,
+    };
+
+    const vulnerabilityRequest = useQuery<
+        {
+            deployment: DeploymentWithVulnerabilities;
+        },
+        {
+            id: string;
+            query: string;
+            pagination: PaginationParam;
+        }
+    >(vulnerabilityQuery, {
+        variables: {
+            id: deploymentId,
+            query: getRequestQueryStringForSearchFilter(querySearchFilter),
+            pagination,
+        },
+    });
+
+    const vulnerabilityData = vulnerabilityRequest.data ?? vulnerabilityRequest.previousData;
 
     return (
         <>
@@ -179,8 +232,15 @@ function DeploymentPageVulnerabilities({ deploymentId }: DeploymentPageVulnerabi
                                         />
                                     </SplitItem>
                                 </Split>
-                                TODO Table
                             </div>
+                            {vulnerabilityData && (
+                                // TODO Loading/error states
+                                <DeploymentVulnerabilitiesTable
+                                    deployment={vulnerabilityData.deployment}
+                                    getSortParams={getSortParams}
+                                    isFiltered={isFiltered}
+                                />
+                            )}
                         </div>
                     </Tab>
                     <Tab

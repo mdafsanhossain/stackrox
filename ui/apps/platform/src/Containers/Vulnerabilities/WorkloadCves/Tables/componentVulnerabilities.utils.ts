@@ -62,6 +62,7 @@ export type DeploymentComponentVulnerability = ComponentVulnerabilityBase & {
         cvss: number;
         scoreVersion: string;
         fixedByVersion: string;
+        discoveredAtImage: Date | null;
     }[];
 };
 
