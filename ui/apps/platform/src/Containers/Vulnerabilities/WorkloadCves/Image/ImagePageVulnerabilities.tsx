@@ -40,8 +40,8 @@ import SingleEntityVulnerabilitiesTable, {
     imageVulnerabilitiesFragment,
 } from '../Tables/SingleEntityVulnerabilitiesTable';
 import { DynamicTableLabel } from '../components/DynamicIcon';
-import { getHiddenSeverities, parseQuerySearchFilter } from '../searchUtils';
-import { QuerySearchFilter, FixableStatus, cveStatusTabValues } from '../types';
+import { getHiddenSeverities, getHiddenStatuses, parseQuerySearchFilter } from '../searchUtils';
+import { cveStatusTabValues } from '../types';
 import {
     ImageMetadataContext,
     imageMetadataContextFragment,
@@ -56,6 +56,18 @@ const imageVulnerabilitiesQuery = gql`
             ...ImageMetadataContext
             imageVulnerabilityCounter(query: $query) {
                 ...ImageVulnerabilityCounterFields
+                critical {
+                    total
+                }
+                important {
+                    total
+                }
+                moderate {
+                    total
+                }
+                low {
+                    total
+                }
             }
             imageVulnerabilities(query: $query, pagination: $pagination) {
                 ...ImageVulnerabilityFields
@@ -63,23 +75,6 @@ const imageVulnerabilitiesQuery = gql`
         }
     }
 `;
-
-function getHiddenStatuses(querySearchFilter: QuerySearchFilter): Set<FixableStatus> {
-    const hiddenStatuses = new Set<FixableStatus>([]);
-    const fixableFilters = querySearchFilter?.Fixable ?? [];
-
-    if (fixableFilters.length > 0) {
-        if (!fixableFilters.includes('true')) {
-            hiddenStatuses.add('Fixable');
-        }
-
-        if (!fixableFilters.includes('false')) {
-            hiddenStatuses.add('Not fixable');
-        }
-    }
-
-    return hiddenStatuses;
-}
 
 const defaultSortFields = ['CVE'];
 
@@ -109,7 +104,12 @@ function ImagePageVulnerabilities({ imageId }: ImagePageVulnerabilitiesProps) {
     const { data, previousData, loading, error } = useQuery<
         {
             image: ImageMetadataContext & {
-                imageVulnerabilityCounter: ImageVulnerabilityCounter;
+                imageVulnerabilityCounter: ImageVulnerabilityCounter & {
+                    critical: { total: number };
+                    important: { total: number };
+                    moderate: { total: number };
+                    low: { total: number };
+                };
                 imageVulnerabilities: ImageVulnerability[];
             };
         },
@@ -168,10 +168,10 @@ function ImagePageVulnerabilities({ imageId }: ImagePageVulnerabilitiesProps) {
                             <BySeveritySummaryCard
                                 title="CVEs by severity"
                                 severityCounts={{
-                                    CRITICAL_VULNERABILITY_SEVERITY: critical.total,
-                                    IMPORTANT_VULNERABILITY_SEVERITY: important.total,
-                                    MODERATE_VULNERABILITY_SEVERITY: moderate.total,
-                                    LOW_VULNERABILITY_SEVERITY: low.total,
+                                    critical: critical.total,
+                                    important: important.total,
+                                    moderate: moderate.total,
+                                    low: low.total,
                                 }}
                                 hiddenSeverities={hiddenSeverities}
                             />

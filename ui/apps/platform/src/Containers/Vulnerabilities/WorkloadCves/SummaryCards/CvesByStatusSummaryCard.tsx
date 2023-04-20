@@ -14,39 +14,13 @@ import { CheckCircleIcon, ExclamationCircleIcon } from '@patternfly/react-icons'
 import { gql } from '@apollo/client';
 import { FixableStatus } from '../types';
 
-export const imageVulnerabilityCounterKeys = ['low', 'moderate', 'important', 'critical'] as const;
-
-export type ImageVulnerabilityCounterKey = (typeof imageVulnerabilityCounterKeys)[number];
-
-export type ImageVulnerabilityCounter = Record<
-    ImageVulnerabilityCounterKey | 'all',
-    { total: number; fixable: number }
->;
-
-export type CvesByStatusSummaryCardProps = {
-    cveStatusCounts: ImageVulnerabilityCounter;
-    hiddenStatuses: Set<FixableStatus>;
+export type ImageVulnerabilityCounter = {
+    all: { total: number; fixable: number };
 };
 
 export const imageVulnerabilityCounterFragment = gql`
     fragment ImageVulnerabilityCounterFields on VulnerabilityCounter {
         all {
-            total
-            fixable
-        }
-        low {
-            total
-            fixable
-        }
-        moderate {
-            total
-            fixable
-        }
-        important {
-            total
-            fixable
-        }
-        critical {
             total
             fixable
         }
@@ -59,11 +33,11 @@ const statusDisplays = [
         Icon: CheckCircleIcon,
         iconColor: 'var(--pf-global--success-color--100)',
         text: (counts: ImageVulnerabilityCounter) => {
-            let count = 0;
-            imageVulnerabilityCounterKeys.forEach((key) => {
-                count += counts[key].fixable;
-            });
-            return `${pluralize(count, 'vulnerability', 'vulnerabilities')} with available fixes`;
+            return `${pluralize(
+                counts.all.fixable,
+                'vulnerability',
+                'vulnerabilities'
+            )} with available fixes`;
         },
     },
     {
@@ -71,16 +45,17 @@ const statusDisplays = [
         Icon: ExclamationCircleIcon,
         iconColor: 'var(--pf-global--danger-color--100)',
         text: (counts: ImageVulnerabilityCounter) => {
-            let count = 0;
-            imageVulnerabilityCounterKeys.forEach((key) => {
-                count += counts[key].total - counts[key].fixable;
-            });
-            return `${count} vulnerabilities without fixes`;
+            return `${counts.all.total - counts.all.fixable} vulnerabilities without fixes`;
         },
     },
 ] as const;
 
 const disabledColor100 = 'var(--pf-global--disabled-color--100)';
+
+export type CvesByStatusSummaryCardProps = {
+    cveStatusCounts: ImageVulnerabilityCounter;
+    hiddenStatuses: Set<FixableStatus>;
+};
 
 function CvesByStatusSummaryCard({
     cveStatusCounts,

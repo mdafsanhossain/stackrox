@@ -286,7 +286,7 @@ function ImageCvePage() {
                         {summaryRequest.data && (
                             <ImageCveSummaryCards
                                 summaryCounts={summaryRequest.data}
-                                severitySummary={summaryRequest.data.imageCVE}
+                                severitySummary={summaryRequest.data.imageCVE ?? undefined}
                                 hiddenSeverities={hiddenSeverities}
                             />
                         )}

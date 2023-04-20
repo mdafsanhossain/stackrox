@@ -41,20 +41,29 @@ export const imageCveSummaryCountFragment = gql`
     }
 `;
 
+const defaultSeveritySummary = {
+    affectedImageCountBySeverity: {
+        critical: 0,
+        important: 0,
+        moderate: 0,
+        low: 0,
+    },
+    affectedImageCount: 0,
+    topCVSS: 0,
+};
+
 export type ImageCveSummaryCardsProps = {
     summaryCounts: ImageCveSummaryCount;
-    severitySummary: ImageCveSeveritySummary | null;
+    severitySummary: ImageCveSeveritySummary | undefined;
     hiddenSeverities: Set<VulnerabilitySeverity>;
 };
 
 function ImageCveSummaryCards({
     summaryCounts,
-    severitySummary,
+    severitySummary = defaultSeveritySummary,
     hiddenSeverities,
 }: ImageCveSummaryCardsProps) {
-    const { critical, important, moderate, low } =
-        severitySummary?.affectedImageCountBySeverity ?? {};
-    const { affectedImageCount, topCVSS } = severitySummary ?? {};
+    const { affectedImageCount, topCVSS } = severitySummary;
     const { totalImageCount } = summaryCounts;
     return (
         <Flex
@@ -64,23 +73,18 @@ function ImageCveSummaryCards({
         >
             <AffectedImages
                 className="pf-u-flex-grow-1 pf-u-flex-basis-0"
-                affectedImageCount={affectedImageCount ?? 0}
+                affectedImageCount={affectedImageCount}
                 totalImagesCount={totalImageCount}
             />
             <BySeveritySummaryCard
                 className="pf-u-flex-grow-1 pf-u-flex-basis-0"
                 title="Images by severity"
-                severityCounts={{
-                    CRITICAL_VULNERABILITY_SEVERITY: critical ?? 0,
-                    IMPORTANT_VULNERABILITY_SEVERITY: important ?? 0,
-                    MODERATE_VULNERABILITY_SEVERITY: moderate ?? 0,
-                    LOW_VULNERABILITY_SEVERITY: low ?? 0,
-                }}
+                severityCounts={severitySummary.affectedImageCountBySeverity}
                 hiddenSeverities={hiddenSeverities}
             />
             <TopCvssScoreBreakdown
                 className="pf-u-flex-grow-1 pf-u-flex-basis-0"
-                cvssScore={topCVSS ?? 0}
+                cvssScore={topCVSS}
                 vector="TODO - Not implemented"
             />
         </Flex>
