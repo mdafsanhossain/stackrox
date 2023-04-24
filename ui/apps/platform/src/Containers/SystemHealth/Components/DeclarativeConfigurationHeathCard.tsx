@@ -93,13 +93,21 @@ function DeclarativeConfigurationHealthCard({ pollingCount }: Props): ReactEleme
                                     <Th width={20}>Date</Th>
                                 </Tr>
                             </Thead>
-                            <Tbody>
+                            <Tbody data-testid="declarative-configs">
                                 {items.map(({ id, name, errorMessage, lastTimestamp }) => (
                                     <Tr key={id}>
-                                        <Td dataLabel="Name" modifier="breakWord">
+                                        <Td
+                                            dataLabel="Name"
+                                            modifier="breakWord"
+                                            data-testid="integration-name"
+                                        >
                                             {name}
                                         </Td>
-                                        <Td dataLabel="Error" modifier="breakWord">
+                                        <Td
+                                            dataLabel="Error"
+                                            modifier="breakWord"
+                                            data-testid="error-message"
+                                        >
                                             {errorMessage}
                                         </Td>
                                         <Td dataLabel="Date">{lastTimestamp}</Td>
