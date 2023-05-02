@@ -10,6 +10,7 @@ die() {
 
 INPUT_ROOT="$1"
 OUTPUT_DIR="$2"
+ARCH="$3"
 # Install the PG repo natively if true (versus using a container)
 NATIVE_PG_INSTALL="${3:-false}"
 
@@ -29,7 +30,12 @@ chmod -R 755 "${bundle_root}"
 
 # =============================================================================
 # Get latest postgres minor version
+if [[ $ARCH == "amd64" ]]; then
 arch="x86_64"
+fi
+if [[ $ARCH == "ppc64le" ]]; then
+arch="ppc64le"
+fi
 dnf_list_args=()
 if [[ $(uname -m) == "arm64" ]]; then
   arch="aarch64"

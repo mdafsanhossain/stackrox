@@ -72,7 +72,10 @@ ifeq ($(UNAME_M),arm64)
 endif
 endif
 
-TARGET_ARCH := "amd64"
+TARGET_ARCH := $(ARCH)
+PLATFORM = linux/$(ARCH)
+GOARCH = $(ARCH)
+
 ifeq ($(UNAME_M),arm64)
 TARGET_ARCH = "arm64"
 endif
@@ -655,7 +658,7 @@ mock-grpc-server-image: mock-grpc-server-build clean-image
 		integration-tests/mock-grpc-server/image
 
 $(CURDIR)/image/postgres/bundle.tar.gz:
-	/usr/bin/env DEBUG_BUILD="$(DEBUG_BUILD)" $(CURDIR)/image/postgres/create-bundle.sh $(CURDIR)/image/postgres $(CURDIR)/image/postgres
+	/usr/bin/env DEBUG_BUILD="$(DEBUG_BUILD)" $(CURDIR)/image/postgres/create-bundle.sh $(CURDIR)/image/postgres $(CURDIR)/image/postgres $(TARGET_ARCH)
 
 .PHONY: $(CURDIR)/image/postgres/Dockerfile.gen
 $(CURDIR)/image/postgres/Dockerfile.gen:
@@ -665,7 +668,7 @@ $(CURDIR)/image/postgres/Dockerfile.gen:
 
 .PHONY: central-db-image
 central-db-image: $(CURDIR)/image/postgres/bundle.tar.gz $(CURDIR)/image/postgres/Dockerfile.gen
-	docker build \
+	docker buildx --load --platform ${PLATFORM} \
 		-t stackrox/central-db:$(TAG) \
 		-t $(DEFAULT_IMAGE_REGISTRY)/central-db:$(TAG) \
 		--build-arg ROX_IMAGE_FLAVOR=$(ROX_IMAGE_FLAVOR) \

@@ -55,6 +55,11 @@ jobs:
 
   pre-build-cli:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [amd64, ppc64le]
+      env:
+      ARCH: ${{ matrix.arch }}
     container:
       image: quay.io/stackrox-io/apollo-ci:stackrox-test-0.3.57
     steps:
@@ -86,6 +91,11 @@ jobs:
           path: cli-build.tgz
   pre-build-go-binaries:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [amd64, ppc64le]
+    env:
+      ARCH: ${{ matrix.arch }}
     container:
       image: quay.io/stackrox-io/apollo-ci:stackrox-test-0.3.57
     steps:
