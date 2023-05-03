@@ -668,7 +668,7 @@ $(CURDIR)/image/postgres/Dockerfile.gen:
 
 .PHONY: central-db-image
 central-db-image: $(CURDIR)/image/postgres/bundle.tar.gz $(CURDIR)/image/postgres/Dockerfile.gen
-	docker buildx --load --platform ${PLATFORM} \
+	docker buildx build --load --platform ${PLATFORM} \
 		-t stackrox/central-db:$(TAG) \
 		-t $(DEFAULT_IMAGE_REGISTRY)/central-db:$(TAG) \
 		--build-arg ROX_IMAGE_FLAVOR=$(ROX_IMAGE_FLAVOR) \
